@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+
+var views = [
+  [7057, 7483, 3749, 3846, 4598],
+  [ 2371, 7397, 4589, 2861, 8249],
+  [ 5972, 5672, 9152, 9725, 8983],
+  [ 9763,  8462,  9782, 1953, 5182],
+  [ 9567,  1571,  2895, 2783, 1874],
+  [ 2371, 7397, 4589, 2861, 8249]
+		];
+
+var width = 1000, height = 1000;
+var colors = [	"#0000ff", 	//blue
+			"#ffd700", 	//gold 
+			"#008000", 	//green 
+			"#ff0000", 	//red 
+			"#800000" 	//maroon
+		];
+var week = 0, scale = 100;
+
+var svg = d3.select("body").append("svg")
+   .attr("width", width)
+   .attr("height", height)
+   .selectAll("g").data(views[week]).enter();
+
+var g = svg.append("g")
+    .attr("transform", function(d,i){
+
+  var x = 10000,  y = 10000;
+
+  if (!(i%2)){
+    for (var count=0;
+         count<i;
+         count++)
+           x+=views[week][count];
+    for (var count=0;
+         count<=i;
+         count++)
+           y+=views[week][count];
+    } else {
+    for (var count=0;
+         count<i;
+         count++)
+           y+=views[week][count];
+    for (var count=0;
+         count<=i;
+         count++)
+           x+=views[week][count];
+    }
+    return "translate(" + x/scale + "," + y/scale + ")"}
+          );
+
+g.append("circle")
+  .attr("r", function(d){return d/scale})
+  .style("fill", function(d, i){return colors[i];});
+
+g.append("text")
+  .attr("x", -10)
+  .attr("fill", "grey")
+  .text(function(d){return d});
+
+</script>
+</body>
