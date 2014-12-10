@@ -122,9 +122,27 @@ function addCircleToSvg(svg, aDataSet) {
             return yScale(d["sound"]);
          })
          .attr("r", function(d) {
-            return 3;
+            return yScale(d["sound"]) / 50;
          }
   );
+
+  //Create labels
+  svg.selectAll("text")
+     .data([aDataSet[0]])
+     .enter()
+     .append("text")
+     .text(function(d) {
+        return d["sound"];
+     })
+     .attr("text-anchor", "middle")
+     .attr("x", function(d, i) {
+        return xScale(i) + 10;
+     })
+     .attr("y", function(d) {
+        return yScale(d["sound"]) - 10;
+     })
+     .attr("font-family", "sans-serif")
+     .attr("font-size", "11px")
 
   //Set Axis
   var xAxis = d3.svg.axis()
@@ -145,39 +163,69 @@ function addCircleToSvg(svg, aDataSet) {
      .attr("transform", "translate("+padding+",0)")
      .call(yAxis);
 
-  d3.select("svg").on("click", function() {
+
+  //Click Event
+  //d3.select("svg").on("click", function() {
+  //}.bind(this));
+
+  var i = 1;
+  var animationTime = 100;
+
+  var interval = setInterval(function() {
+
+    if (i == aDataSet.length)
+      clearInterval(interval);
+
+    //*************** Circle Update
+    svg.selectAll("circle")
+     .data([aDataSet[i]])
+     .transition()
+     .duration(animationTime)
+     .ease("circle")
+     .attr("cx", function(d) {
+          return xScale(i);
+     }.bind(this))
+     .attr("cy", function(d) {
+          //var cy = d["sound"]
+          //console.log(cy);
+          //return cy;
+          return yScale(d["sound"]);
+     })
+     .attr("r", function(d) {
+          //return 3;//yScale(d["sound"]) / 50;
+          return yScale(d["sound"]) / 50;
+     });
+     //****************************
 
 
-    var i = 1;
-    var animationTime = 100;
+     //*************** Label Update
+     svg.selectAll("text")
+      .data([aDataSet[i]])
+      .transition()
+      .duration(animationTime)
+      .ease("circle")
+      .text(function(d) {
+        return d["sound"];
+      })
+      .attr("x", function(d) {
+        return xScale(i) + 10;
+      })
+      .attr("y", function(d) {
+        return yScale(d["sound"]) - 10;
+      })            
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "11px")
+      .attr("text-anchor", "middle")
+    //****************************
 
-    var interval = setInterval(function() {
 
-      if (i == aDataSet.length)
-        clearInterval(interval);
 
-      svg.selectAll("circle")
-       .data([aDataSet[i]])
-       .transition()
-       .duration(animationTime)
-       .ease("circle")
-       .attr("cx", function(d) {
-            return xScale(i);
-       }.bind(this))
-       .attr("cy", function(d) {
-            //var cy = d["sound"]
-            //console.log(cy);
-            //return cy;
-            return yScale(d["sound"]);
-       })
-       .attr("r", function(d) {
-            return 3;//yScale(d["sound"]) / 50;
-       });
 
-       i++;
-    }.bind(this), animationTime);
 
-  }.bind(this));
+     i++;
+  }.bind(this), animationTime);
+
+
 }
 
 function addAllCircleToSvg(svg, aDataSet) {
