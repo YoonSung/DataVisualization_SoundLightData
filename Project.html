@@ -20,7 +20,7 @@ d3.csv(directoryPath + datasetInfoFileName, function(data) {
   });
   
   var dataSet = [];
-  setDataSet(dataInfo, dataSet, 0);
+  setDataSet(dataInfo, dataSet, 6);
 });
 
 
@@ -38,8 +38,34 @@ function setDataSet(dataInfo, dataSet, i) {
 }
 
 function init(dataInfo, dataSet) {
-  console.log(dataInfo);
+
+  //console.log(dataInfo);
   console.log(dataSet);
+
+  var width = 1000;
+  var height = 500;
+
+  var svg = d3.select("body")
+              .append("svg")
+              .attr("width", width)
+              .attr("height", height);
+
+  console.log(dataSet[0]);
+  var circles = svg.selectAll("circle")
+                   .data(dataSet[0])  
+                   .enter()
+                   .append("circle");
+
+  circles.attr("cx", function(d, i) {
+            return i;
+         })
+         .attr("cy", function(d, i) {
+            return d["sound"]
+         })
+         .attr("r", function(d) {
+            return 3;
+         });
+
 }
 
 
