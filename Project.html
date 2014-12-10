@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+
+d3.csv("./data/조사정보.txt", function(data) {
+   dataset = data.map(function(d) { return d;});
+   console.log(dataset)
+});
+
+/*
+d3.csv("정윤성_131068.csv", function(data) {
+   dataset = data.map(function(d) { return [ d["id"], d["time"], d["light"], d["sound"] ]; });
+   console.log(dataset)
+});
+*/
+</script>
+</body>
