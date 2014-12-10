@@ -5,16 +5,43 @@
 
 <script>
 
-d3.csv("./data/조사정보.txt", function(data) {
-   dataset = data.map(function(d) { return d;});
-   console.log(dataset)
+var directoryPath = "./data/";
+var datasetInfoFileName = "조사정보.txt";
+
+d3.csv(directoryPath + datasetInfoFileName, function(data) {
+  var dataInfo = data.map(function(d){
+    return {
+      "csv-name": d["csv-name"],
+      "name": d["name"],
+      "url": d["url"],
+      "latitude": +d["latitude"],
+      "longitude": d["longitude"]
+    }
+  });
+  
+  var dataSet = [];
+  setDataSet(dataInfo, dataSet, 0);
 });
 
-/*
-d3.csv("정윤성_131068.csv", function(data) {
-   dataset = data.map(function(d) { return [ d["id"], d["time"], d["light"], d["sound"] ]; });
-   console.log(dataset)
-});
-*/
+
+function setDataSet(dataInfo, dataSet, i) {
+  console.log(i);
+  if (i == dataInfo.length) {
+      init(dataInfo, dataSet);
+      return;
+  }
+
+  d3.csv(directoryPath + dataInfo[i]["csv-name"], function(data) {
+    dataSet.push(data);
+    setDataSet(dataInfo, dataSet, i+1);
+  });
+}
+
+function init(dataInfo, dataSet) {
+  console.log(dataInfo);
+  console.log(dataSet);
+}
+
+
 </script>
 </body>
