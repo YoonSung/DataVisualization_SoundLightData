@@ -6,7 +6,30 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 </head>
 <body>
+<style>
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: black;
+    /*
+    shape-rendering: crispEdges;
+    */
+  }
 
+  .axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+  }
+
+  p {
+    color: olive;
+  }
+
+  text {
+    color: olive;
+    fill: olive;
+  }
+</style>
 <script charset="utf-8">
 
 var directoryPath = "./data/";
@@ -14,9 +37,11 @@ var datasetInfoFileName = decodeURI("조사정보.txt");
 
 var width = 1000;
 var height = 400;
-var padding = 20;
+var padding = 40;
 
 console.log(datasetInfoFileName);
+
+
 d3.csv(directoryPath + datasetInfoFileName, function(data) {
   var dataInfo = data.map(function(d){
     return {
@@ -32,6 +57,7 @@ d3.csv(directoryPath + datasetInfoFileName, function(data) {
   saveDataSet(dataInfo, dataSet, 6);
 });
 
+/************************************************************************/
 
 function saveDataSet(dataInfo, dataSet, i) {
   console.log("setDataSet : ",i);
@@ -61,14 +87,15 @@ function init(dataInfo, dataSet) {
 }
 
 function addCircleToSvg(svg, aDataSet) {
+
+  //Create Circles
   var circles = svg.selectAll("circle")
                    .data(aDataSet)  
                    .enter()
                    .append("circle");
 
-
-  console.log("length : ", aDataSet.length);
   
+  //Set Scale
   var xScale = d3.scale.linear().domain([0, aDataSet.length]).range([padding, width - padding]);
   var yScale = d3.scale.linear()
               .domain(
@@ -77,14 +104,14 @@ function addCircleToSvg(svg, aDataSet) {
                     
                     return +d["sound"];
                   }),
-                  
+
                   d3.max(aDataSet, function(d){
                     return +d["sound"];
                   })
                 ])
-                .range([padding, height - padding]);
-              //.range([height - padding, padding]);
+                .range([height - padding, padding]);
 
+  //Set Circles Attribute
   circles.attr("cx", function(d, i) {
             return xScale(i);
          })
@@ -98,6 +125,48 @@ function addCircleToSvg(svg, aDataSet) {
             return 3;
          }
   );
+
+  //Set Axis
+  var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom");
+
+  var yAxis = d3.svg.axis()
+                    .scale(yScale)
+                    .orient("left");
+
+  svg.append("g")
+     .attr("class", "axis")
+     .attr("transform", "translate(0," + (height-padding) + ")")
+     .call(xAxis);
+
+  svg.append("g")
+     .attr("class", "axis")
+     .attr("transform", "translate("+padding+",0)")
+     .call(yAxis);
+
+  d3.select("svg").on("click", function() {
+    aDataSet = aDataSet.reverse();
+
+    svg.selectAll("circle")
+       .data(aDataSet)
+       .transition()
+       .duration(2000)
+       .ease("circle")
+       .attr("cx", function(d, i) {
+            return xScale(i);
+       })
+       .attr("cy", function(d, i) {
+            //var cy = d["sound"]
+            //console.log(cy);
+            //return cy;
+            return yScale(d["sound"]);
+       })
+       .attr("r", function(d) {
+            return 3;
+       });
+
+  }.bind(this));
 }
 
 </script>
