@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<body>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<html>
+<head>
 
-<script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+
+<script charset="utf-8">
 
 var directoryPath = "./data/";
-var datasetInfoFileName = "조사정보.txt";
-
+var datasetInfoFileName = decodeURI("조사정보.txt");
+var padding = 20;
+console.log(datasetInfoFileName);
 d3.csv(directoryPath + datasetInfoFileName, function(data) {
   var dataInfo = data.map(function(d){
     return {
-      "csv-name": d["csv-name"],
-      "name": d["name"],
+      "csv-name": decodeURI(d["csv-name"]),
+      "name": decodeURI(d["name"]),
       "url": d["url"],
       "latitude": +d["latitude"],
       "longitude": d["longitude"]
@@ -43,7 +48,7 @@ function init(dataInfo, dataSet) {
   console.log(dataSet);
 
   var width = 1000;
-  var height = 500;
+  var height = 400;
 
   var svg = d3.select("body")
               .append("svg")
@@ -58,40 +63,37 @@ function init(dataInfo, dataSet) {
 
 
   console.log("length : ", dataSet[0].length);
-
-  var length = dataSet[0].length;
-  var xScale = d3.scale.linear().domain([0, length]).range([0, width]);
-  var yScale = getScale(dataSet[0], "sound", height);
+  //console.log(dataSet[0]);
+  var xScale = d3.scale.linear().domain([0, dataSet[0].length]).range([padding, width - padding]);
+  var yScale = d3.scale.linear()
+              .domain(
+                [
+                  //10
+                    d3.min(dataSet[0], function(d){
+                      
+                      return +d["sound"];
+                    }),
+                  //99
+                    d3.max(dataSet[0], function(d){
+                      return +d["sound"];
+                    })
+                ])
+                .range([padding, height - padding]);
+              //.range([height - padding, padding]);
 
   circles.attr("cx", function(d, i) {
             return xScale(i);
          })
          .attr("cy", function(d, i) {
+            //var cy = d["sound"]
+            //console.log(cy);
+            //return cy;
             return yScale(d["sound"]);
          })
          .attr("r", function(d) {
             return 3;
          });
 }
-
-function getScale(array, attribute, rangeMax) {
-  
-  var max = d3.max(array, function(d) {
-    return d[attribute];
-  });
-
-  var min = d3.min(array, function(d) {
-    return d[attribute];
-  });
-
-  console.log("array max : ",max);
-  console.log("array min : ",min);
-
-  return scale = d3.scale.linear()
-              .domain([min, max])
-              .range([0, rangeMax]);
-}
-
 
 </script>
 </body>
