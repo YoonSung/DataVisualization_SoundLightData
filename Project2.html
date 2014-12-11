@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+<style>
+
+  @font-face {
+    font-family: 'digital';
+    src: url('./digital-7.regular.ttf');
+  }
+
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: black;
+    /*
+    shape-rendering: crispEdges;
+    */
+  }
+
+  .axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+  }
+
+  p {
+    color: olive;
+  }
+
+  .axis text {
+    color: olive;
+    fill: olive;
+  }
+
+  .clock text {
+    font-family: "digital";
+    font-size: 100px;
+    color: black;
+  }
+</style>
+
+<script charset="utf-8">
+
+var directoryPath = "./data/";
+var datasetInfoFileName = decodeURI("조사정보.txt");
+
+var width = 1000;
+var height = 400;
+var padding = 40;
+
+console.log(datasetInfoFileName);
+
+
+d3.csv(directoryPath + datasetInfoFileName, function(data) {
+  var dataInfo = data.map(function(d){
+    return {
+      "csv-name": decodeURI(d["csv-name"]),
+      "name": decodeURI(d["name"]),
+      "url": d["url"],
+      "latitude": +d["latitude"],
+      "longitude": d["longitude"]
+    }
+  });
+  
+  var dataSet = [];
+  saveDataSet(dataInfo, dataSet, 0);
+});
+
+/************************************************************************/
+
+function saveDataSet(dataInfo, dataSet, i) {
+  //console.log("setDataSet : ",i);
+  if (i == dataInfo.length) {
+      init(dataInfo, dataSet);
+      return;
+  }
+
+  d3.csv(directoryPath + dataInfo[i]["csv-name"], function(data) {
+    dataSet.push(data);
+    saveDataSet(dataInfo, dataSet, i+1);
+  });
+}
+
+function init(dataInfo, dataSet) {
+
+  //console.log(dataInfo);
+  //console.log(dataSet);
+
+  
+
+  var svg = d3.select("body")
+              .append("svg")
+              .attr("width", width)
+              .attr("height", height);
+  //addAllCircleToSvg(svg, dataSet[0]);
+  addMultiCircle(svg, dataSet);
+}
+
+function addMultiCircle(svg, aDataSet) {
+
+  var longestDataIndex = 0;
+  var longestDataLength = 0;
+
+  //Get Longest Array Infomation
+  for (var i = 0; i < aDataSet.length; i++) {
+    var currentDataLength = aDataSet[i].length;
+    
+    if (currentDataLength > longestDataLength) {
+      longestDataLength = currentDataLength;
+      longestDataIndex = i;
+    }
+  }        
+  console.log("longestDataIndex : ", longestDataIndex);
+  console.log("longestDataLength : ", longestDataLength);
+
+  var newDataSet = [];
+
+  //Add Longest Data to newDataSet
+  var aLongestDataSet = aDataSet[longestDataIndex];
+  //console.log("aLongestDataSet : ",aLongestDataSet);
+
+  var newArray;
+  for (var i = 0; i < aLongestDataSet.length; i++) {
+
+    newArray = [];
+
+    //create empty space for another data
+    for (var j = 0; j < aDataSet.length; j++) {
+      newArray.push("0");
+    }
+
+    newDataSet.push(newArray);
+  }
+
+  //console.log(newDataSet);
+
+  //Add every DataSet to newDataSet except Longest Array
+  for (var i = 0; i < newDataSet.length; i++) {
+
+
+    for (var j = 0; j < aDataSet.length; j++) {
+
+      var currentObject = aDataSet[j][i];
+      console.log(currentObject);
+      if (currentObject == undefined) {
+        newDataSet[i][j] = newDataSet[i-1][j];
+
+      } else {
+        newDataSet[i][j] = 
+          [
+            currentObject["sound"],
+            currentObject["light"]
+          ];
+      }
+
+    }
+  }      
+
+  console.log(newDataSet);
+}
+
+</script>
+</body>
