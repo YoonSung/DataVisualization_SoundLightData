@@ -50,8 +50,9 @@ var directoryPath = "./data/";
 var datasetInfoFileName = decodeURI("조사정보.txt");
 
 var width = 1000;
-var height = 400;
+var height = 1000;
 var padding = 40;
+var minumumValue = 30;
 
 console.log(datasetInfoFileName);
 
@@ -91,18 +92,199 @@ function init(dataInfo, dataSet) {
   //console.log(dataInfo);
   //console.log(dataSet);
 
-  
 
-  var svg = d3.select("body")
-              .append("svg")
-              .attr("width", width)
-              .attr("height", height);
   //addAllCircleToSvg(svg, dataSet[0]);
-  addMultiCircle(svg, dataSet);
+  addMultiCircle(dataSet);
 }
 
-function addMultiCircle(svg, aDataSet) {
+function addMultiCircle(aDataSet) {
+  var viewsAndInteraction = createNewDataSetForMultiCircle(aDataSet);
+  console.log(viewsAndInteraction);  
 
+  var viewColors = [  "blue",
+                      "gold",
+                      "green", 
+                      "red", 
+                      "maroon",
+                      "maroon",
+                      "maroon"
+      ];
+  var interactionColors = [  "lightblue",
+                             "yellow", 
+                             "lightgreen", 
+                             "lightcoral", 
+                             "indianred",
+                             "indianred",
+                             "indianred"
+      ];
+
+  var week = 0, scale = 100;
+
+  var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .selectAll("g")
+            .data(viewsAndInteraction[week])
+            .enter();
+
+  var g = svg.append("g")
+             .attr("class", "container")
+             .attr("transform", function(d,i){
+        var x = 100,  y = 100;
+
+        if (!(i%2)){
+          for (var count=0;
+               count<i;
+               count++)
+                 x+=viewsAndInteraction[week][count][2];
+          for (var count=0;
+               count<=i;
+               count++)
+                 y+=viewsAndInteraction[week][count][2];
+          } else {
+          for (var count=0;
+               count<i;
+               count++)
+                 y+=viewsAndInteraction[week][count][2];
+          for (var count=0;
+               count<=i;
+               count++)
+                 x+=viewsAndInteraction[week][count][2];
+          }
+          return "translate(" + x + "," + y + ")";
+      });
+
+  g.append("circle")
+    .attr("r", function(d){
+      var value = d[0];
+        if (value <= minumumValue)
+          value =  minumumValue;
+      return value + d[1];
+    })
+    .attr("class", "bigCircle")
+    .style("fill", function(d, i){return viewColors[i];});
+
+  g.append("circle")
+    .attr("r", function(d){
+      var value = d[1];
+        if (value <= minumumValue)
+          return minumumValue;
+        else
+          return value;
+    })
+    .attr("class", "smallCircle")
+    .style("fill", function(d, i){return interactionColors[i];});
+
+  g.append("text")
+    .attr("x", -15)
+    .attr("y", function(d){return (15 + d[1]);})
+    .attr("fill", "white")
+    .attr("class", "bigText")
+    .text(function(d){return d[0]});
+
+  g.append("text")
+    .attr("x", -15)
+    .attr("y", 5)
+    .attr("class", "smallText")
+    .text(function(d){return d[1]});
+
+
+
+
+  var animationIndex = 1;
+  var animationTime = 500;
+
+  var interval = setInterval(function() {
+
+    if (animationIndex == viewsAndInteraction.length) {
+      clearInterval(interval);
+      return;
+    }
+      
+
+    //*************** Transformation Update
+    g.data(viewsAndInteraction[animationIndex])
+     .transition()
+     .duration(animationTime)
+     .ease("linear")
+     .attr("transform", function(d,i)
+      {
+        var x = 100,  y = 100;
+        
+        if (!(i%2)){
+          for (var count=0; count<i; count++)
+            x+=viewsAndInteraction[animationIndex][count][2];
+
+          for (var count=0; count<=i; count++)
+            y+=viewsAndInteraction[animationIndex][count][2];
+               
+        } else {
+          for (var count=0; count<i; count++)
+            y+=viewsAndInteraction[animationIndex][count][2];
+          
+          for (var count=0; count<=i; count++)
+            x+=viewsAndInteraction[animationIndex][count][2];
+        }
+        
+        return "translate(" + x + "," + y + ")"
+      });
+    //****************************
+
+    //*************** OuterCircle Update
+    g.select("circle.bigCircle")
+      .transition()
+      .duration(animationTime)
+      .ease("linear")
+      .attr("r", function(d){
+        var value = d[0];
+        if (value <= minumumValue)
+          value =  minumumValue;
+      return value + d[1];
+      })
+      .attr("class", "bigCircle")
+      .style("fill", function(d, i){return viewColors[i];});
+
+    //*************** InnerCircle Update
+    g.select("circle.smallCircle")
+      .transition()
+      .duration(animationTime)
+      .ease("linear")
+      .attr("r", function(d){
+        var value = d[1];
+        if (value <= minumumValue)
+          return minumumValue;
+        else
+          return value;
+      })
+      .attr("class", "smallCircle")
+      .style("fill", function(d, i){return interactionColors[i];});
+
+    //*************** OuterCircle Text Update
+    g.select("text.bigText")
+      .transition()
+      .duration(animationTime)
+      .ease("linear")
+      .attr("x", -15)
+      .attr("y", function(d){return (15 + d[1]);})
+      .attr("fill", "white")
+      .attr("class", "bigText")
+      .text(function(d){return d[0]});
+
+  //*************** InnerCircle Text Update
+    g.select("text.smallText")
+      .transition()
+      .duration(animationTime)
+      .ease("linear")
+      .attr("x", -15)
+      .attr("y", 5)
+      .attr("class", "smallText")
+      .text(function(d){return d[1]});
+
+    animationIndex++;
+  }.bind(this), animationTime);  
+}
+
+function createNewDataSetForMultiCircle(aDataSet) {
   var longestDataIndex = 0;
   var longestDataLength = 0;
 
@@ -146,22 +328,43 @@ function addMultiCircle(svg, aDataSet) {
     for (var j = 0; j < aDataSet.length; j++) {
 
       var currentObject = aDataSet[j][i];
-      console.log(currentObject);
+      
       if (currentObject == undefined) {
         newDataSet[i][j] = newDataSet[i-1][j];
 
       } else {
+
+        var soundValue = (+currentObject["sound"]);
+        var lightValue = (+currentObject["light"]);
+
+        var transformValue;
+        var extraValue = 0;
+
+        //if (soundValue < minumumValue)
+        //  extraValue += minumumValue;
+
+        if (lightValue < minumumValue)
+          extraValue += minumumValue;
+
+
+
+        //if (soundValue >= lightValue)
+        //  transformValue = soundValue;
+        //else
+          transformValue = (lightValue + soundValue);
+
         newDataSet[i][j] = 
           [
-            currentObject["sound"],
-            currentObject["light"]
+            lightValue,
+            soundValue,
+            transformValue + extraValue/2
           ];
       }
 
     }
   }      
 
-  console.log(newDataSet);
+  return newDataSet;
 }
 
 </script>
