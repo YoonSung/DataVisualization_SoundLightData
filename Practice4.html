@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+
+var viewsAndInteraction = [
+[ [7057, 2052], [7483, 2089], [3749, 1586],
+  [3846, 1426], [4598, 2632]               ],
+[ [5972, 2071], [5672, 2190], [9152, 7214],
+  [9725, 3782], [8983, 2721]               ],
+[ [8749, 3076], [4768, 3190], [6738, 4532],
+  [9546, 3825], [6983, 4831]               ]
+               ];
+
+var width = 1000, height = 1000;
+var viewColors = [  "blue",
+                    "gold",
+                    "green", 
+                    "red", 
+                    "maroon"
+    ];
+var interactionColors = [  "lightblue",
+                           "yellow", 
+                           "lightgreen", 
+                           "lightcoral", 
+                           "indianred"
+    ];
+
+var week = 0, scale = 100;
+
+var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .selectAll("g")
+            .data(viewsAndInteraction[week])
+            .enter();
+
+var g = svg.append("g")
+           .attr("class", "container")
+           .attr("transform", function(d,i){
+      var x = 10000,  y = 10000;
+
+      if (!(i%2)){
+        for (var count=0;
+             count<i;
+             count++)
+               x+=viewsAndInteraction[week][count][0];
+        for (var count=0;
+             count<=i;
+             count++)
+               y+=viewsAndInteraction[week][count][0];
+        } else {
+        for (var count=0;
+             count<i;
+             count++)
+               y+=viewsAndInteraction[week][count][0];
+        for (var count=0;
+             count<=i;
+             count++)
+               x+=viewsAndInteraction[week][count][0];
+        }
+        return "translate(" + x/scale + "," + y/scale + ")";
+    });
+
+g.append("circle")
+  .attr("r", function(d){return d[0]/scale})
+  .attr("class", "bigCircle")
+  .style("fill", function(d, i){return viewColors[i];});
+
+g.append("circle")
+  .attr("r", function(d){return d[1]/scale})
+  .attr("class", "smallCircle")
+  .style("fill", function(d, i){return interactionColors[i];});
+
+g.append("text")
+  .attr("x", -15)
+  .attr("y", function(d){return (15 + d[1]/scale);})
+  .attr("fill", "white")
+  .attr("class", "bigText")
+  .text(function(d){return d[0]});
+
+g.append("text")
+  .attr("x", -15)
+  .attr("y", 5)
+  .attr("class", "smallCircle")
+  .text(function(d){return d[1]});
+
+
+
+
+var animationIndex = 1;
+var animationTime = 2000;
+
+var interval = setInterval(function() {
+
+  if (animationIndex == viewsAndInteraction.length) {
+    clearInterval(interval);
+    return;
+  }
+    
+
+  //*************** Transformation Update
+  g.data(viewsAndInteraction[animationIndex])
+   .transition()
+   .duration(animationTime)
+   .ease("circle")
+   .attr("transform", function(d,i)
+    {
+      var x = 10000,  y = 10000;
+      console.log(i);
+      if (!(i%2)){
+        for (var count=0; count<i; count++)
+          x+=viewsAndInteraction[animationIndex][count][0];
+
+        for (var count=0; count<=i; count++)
+          y+=viewsAndInteraction[animationIndex][count][0];
+             
+      } else {
+        for (var count=0; count<i; count++)
+          y+=viewsAndInteraction[animationIndex][count][0];
+        
+        for (var count=0; count<=i; count++)
+          x+=viewsAndInteraction[animationIndex][count][0];
+      }
+      
+      return "translate(" + x/scale + "," + y/scale + ")"
+    });
+  //****************************
+
+  //*************** OuterCircle Update
+  g.select("circle.bigCircle")
+    .transition()
+    .duration(animationTime)
+    .ease("circle")
+    .attr("r", function(d){return d[0]/scale})
+    .attr("class", "bigCircle")
+    .style("fill", function(d, i){return viewColors[i];});
+
+  //*************** InnerCircle Update
+  g.select("circle.smallCircle")
+    .transition()
+    .duration(animationTime)
+    .ease("circle")
+    .attr("r", function(d){return d[1]/scale})
+    .attr("class", "smallCircle")
+    .style("fill", function(d, i){return interactionColors[i];});
+
+  //*************** OuterCircle Text Update
+  g.select("text.bigText")
+    .transition()
+    .duration(animationTime)
+    .ease("circle")
+    .attr("x", -15)
+    .attr("y", function(d){return (15 + d[1]/scale);})
+    .attr("fill", "white")
+    .attr("class", "bigText")
+    .text(function(d){return d[0]});
+
+//*************** InnerCircle Text Update
+  g.select("text.smallText")
+    .transition()
+    .duration(animationTime)
+    .ease("circle")
+    .attr("x", -15)
+    .attr("y", 5)
+    .attr("class", "smallCircle")
+    .text(function(d){return d[1]});
+
+  animationIndex++;
+}.bind(this), animationTime);
+
+</script>
+</body>
