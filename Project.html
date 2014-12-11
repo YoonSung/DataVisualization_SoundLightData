@@ -7,6 +7,13 @@
 </head>
 <body>
 <style>
+
+  @font-face {
+    font-family: 'digital';
+    src: url('./digital-7.regular.ttf');
+  }
+
+
   .axis path,
   .axis line {
     fill: none;
@@ -25,11 +32,18 @@
     color: olive;
   }
 
-  text {
+  .axis text {
     color: olive;
     fill: olive;
   }
+
+  .clock text {
+    font-family: "digital";
+    font-size: 100px;
+    color: black;
+  }
 </style>
+
 <script charset="utf-8">
 
 var directoryPath = "./data/";
@@ -142,7 +156,21 @@ function addCircleToSvg(svg, aDataSet) {
         return yScale(d["sound"]) - 10;
      })
      .attr("font-family", "sans-serif")
-     .attr("font-size", "11px")
+     .attr("font-size", "11px");
+
+  //Create Clock
+  svg.selectAll("clock")
+     .data([aDataSet[0]])
+     .enter()
+     .append("text")
+     .text(function(d) {
+        return d["time"];
+     })
+     .attr("x", 2*padding)
+     .attr("y", 3*padding)
+     .attr("font-family", "digital")
+     .attr("font-size", "50px")
+     .attr("class", "clock");
 
   //Set Axis
   var xAxis = d3.svg.axis()
@@ -219,8 +247,16 @@ function addCircleToSvg(svg, aDataSet) {
     //****************************
 
 
-
-
+    //*************** Clock Update
+    svg.selectAll("text.clock")
+     .data([aDataSet[i]])
+      .transition()
+      .duration(animationTime)
+     .ease("circle")
+      .text(function(d) {
+        return d["time"];
+      })
+     //****************************
 
      i++;
   }.bind(this), animationTime);
