@@ -36,6 +36,20 @@
     font-family: "digital";
   }
 
+  svg.subSvg {
+    position: absolute;
+    right: 100px;
+    top: 300px;
+    background-color: whitesmoke;
+    cursor: url("./exit.png"), auto;
+  }
+
+  button.exitButton {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+  }
+
   div.categoryTemplate * {
     display: inline-block;
     text-align: center;
@@ -46,6 +60,10 @@
     height: 15px;
     border: 1px solid black;
     border-radius: 30px;
+  }
+
+  g {
+    cursor: pointer;
   }
 </style>
 
@@ -424,12 +442,21 @@ var yScale;
 var svg;
 var subWidth = width / 2;
 var subHeight = height / 2;
-
+var isGraphOn = true;
 function addDetailGraph(dataInfo, aDataSet) {
   svg = d3.select("body")
               .append("svg")
               .attr("width", subWidth)
-              .attr("height", subHeight);
+              .attr("height", subHeight)
+              .attr("class", "subSvg");
+
+  svg.on("click", function() {
+    console.log("test");
+    if (isGraphOn == true) {
+      document.querySelector("svg.subSvg").style.display = "none";
+      isGraphOn = false;
+    }
+  }.bind(this))
 
   //Create Circles
   var soundCircle = svg.selectAll("circle.soundCircle")
@@ -566,6 +593,13 @@ var interval;
 function updateDetailGraph(dataInfo, aDataSet) {
   var i = 0;
   var animationTime = 100;
+
+  
+  if (isGraphOn == false) {
+    document.querySelector("svg.subSvg").style.display = "inline-block";
+    isGraphOn = true;
+  }
+
 
   if (interval != undefined) {
     clearInterval(interval);
