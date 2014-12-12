@@ -3,7 +3,7 @@
 <html>
 <head>
 
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="./d3.min.js"></script>
 </head>
 <body>
 <style>
@@ -13,34 +13,35 @@
     src: url('./digital-7.regular.ttf');
   }
 
-
-  .axis path,
-  .axis line {
-    fill: none;
-    stroke: black;
-    /*
-    shape-rendering: crispEdges;
-    */
-  }
-
-  .axis text {
-    font-family: sans-serif;
-    font-size: 11px;
-  }
-
-  p {
-    color: olive;
-  }
-
-  .axis text {
-    color: olive;
-    fill: olive;
+  text {
+    font-family: "digital";
+    font-size: 1.7em;
   }
 
   .clock text {
-    font-family: "digital";
+    
     font-size: 100px;
     color: black;
+  }
+
+  svg {
+    border: 1px solid lightgray;
+  }
+
+  * {
+    font-family: "digital";
+  }
+
+  div.categoryTemplate * {
+    display: inline-block;
+    text-align: center;
+  }
+
+  div.circle {
+    width: 15px;
+    height: 15px;
+    border: 1px solid black;
+    border-radius: 30px;
   }
 </style>
 
@@ -49,7 +50,7 @@
 var directoryPath = "./data/";
 var datasetInfoFileName = decodeURI("조사정보.txt");
 
-var width = 1000;
+var width = 1300;
 var height = 1000;
 var padding = 40;
 var minumumValue = 30;
@@ -94,13 +95,14 @@ function init(dataInfo, dataSet) {
 
 
   //addAllCircleToSvg(svg, dataSet[0]);
-  addMultiCircle(dataSet);
+  addMultiCircle(dataInfo, dataSet);
 }
 
-function addMultiCircle(aDataSet) {
+function addMultiCircle(dataInfo, aDataSet) {
   var viewsAndInteraction = createNewDataSetForMultiCircle(aDataSet);
   console.log(viewsAndInteraction);  
 
+  /*
   var viewColors = [  "blue",
                       "gold",
                       "green", 
@@ -117,6 +119,31 @@ function addMultiCircle(aDataSet) {
                              "indianred",
                              "indianred"
       ];
+  */
+
+  var viewColors = d3.scale.category20();
+  var interactionColors = function(i) {
+    return viewColors(19-i)
+  }
+
+  //Infomationbox set
+  var template = document.querySelector("div.categoryTemplate");
+  var target = document.getElementById("infoBox");
+
+  for (var index=0; index<dataInfo.length; index++) {
+    var newNode = template.cloneNode(true);
+    var circle = box = newNode.querySelector(".circle");
+    circle.style.backgroundColor = viewColors(index);
+
+    var category = newNode.querySelector(".category");
+    category.innerText = dataInfo[index]["name"];
+
+    target.appendChild(newNode);
+  }
+
+
+  console.log(target);
+  console.log(template);
 
   var week = 0, scale = 100;
 
@@ -162,7 +189,7 @@ function addMultiCircle(aDataSet) {
       return value + d[1];
     })
     .attr("class", "bigCircle")
-    .style("fill", function(d, i){return viewColors[i];});
+    .style("fill", function(d, i){return viewColors(i);});
 
   g.append("circle")
     .attr("r", function(d){
@@ -173,7 +200,7 @@ function addMultiCircle(aDataSet) {
           return value;
     })
     .attr("class", "smallCircle")
-    .style("fill", function(d, i){return interactionColors[i];});
+    .style("fill", function(d, i){return interactionColors(i);});
 
   g.append("text")
     .attr("x", -15)
@@ -242,7 +269,7 @@ function addMultiCircle(aDataSet) {
       return value + d[1];
       })
       .attr("class", "bigCircle")
-      .style("fill", function(d, i){return viewColors[i];});
+      .style("fill", function(d, i){return viewColors(i);});
 
     //*************** InnerCircle Update
     g.select("circle.smallCircle")
@@ -257,7 +284,7 @@ function addMultiCircle(aDataSet) {
           return value;
       })
       .attr("class", "smallCircle")
-      .style("fill", function(d, i){return interactionColors[i];});
+      .style("fill", function(d, i){return interactionColors(i);});
 
     //*************** OuterCircle Text Update
     g.select("text.bigText")
@@ -368,4 +395,18 @@ function createNewDataSetForMultiCircle(aDataSet) {
 }
 
 </script>
+<div>
+  <h1 style="display:inline;">Light And Sound in Pangyo</h1>
+  <div id="infoBox" style="position: absolute; top:70px;left:1100px">
+    <p>Inner Circle : Sound</p>
+    <p>Outer Circle : Light</p>
+</div>
+
+<div style="display: none">
+  <div class="categoryTemplate">
+      <div class="circle"></div>
+      <div class="category">정윤성</div>
+      </div>
+  </div>
+</div>
 </body>
