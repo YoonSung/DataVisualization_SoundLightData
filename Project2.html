@@ -18,6 +18,10 @@
     font-size: 1.7em;
   }
 
+  .axis text {
+    font-size: 1em; 
+  }
+
   .clock text {
     
     font-size: 100px;
@@ -55,9 +59,14 @@ var height = 1000;
 var padding = 40;
 var minumumValue = 30;
 
-console.log(datasetInfoFileName);
+var viewColors;
+var interactionColors;
+
+//console.log(datasetInfoFileName);
 
 
+/************************************************************************/
+//Initial Called Function Start
 d3.csv(directoryPath + datasetInfoFileName, function(data) {
   var dataInfo = data.map(function(d){
     return {
@@ -72,8 +81,6 @@ d3.csv(directoryPath + datasetInfoFileName, function(data) {
   var dataSet = [];
   saveDataSet(dataInfo, dataSet, 0);
 });
-
-/************************************************************************/
 
 function saveDataSet(dataInfo, dataSet, i) {
   //console.log("setDataSet : ",i);
@@ -96,11 +103,22 @@ function init(dataInfo, dataSet) {
 
   //addAllCircleToSvg(svg, dataSet[0]);
   addMultiCircle(dataInfo, dataSet);
+  addDetailGraph(dataInfo, dataSet[0]);
+
+  d3.selectAll("svg g.container").on("click", function(d, i) {
+    //console.log(i);
+    updateDetailGraph(dataInfo, dataSet[i]);
+  })
 }
 
+//Initial Called Function End
+/************************************************************************/
+
+
+/************************************************************************/
+//MultiCircle Setting Start
 function addMultiCircle(dataInfo, aDataSet) {
   var viewsAndInteraction = createNewDataSetForMultiCircle(aDataSet);
-  console.log(viewsAndInteraction);  
 
   /*
   var viewColors = [  "blue",
@@ -121,8 +139,8 @@ function addMultiCircle(dataInfo, aDataSet) {
       ];
   */
 
-  var viewColors = d3.scale.category20();
-  var interactionColors = function(i) {
+  viewColors = d3.scale.category20();
+  interactionColors = function(i) {
     return viewColors(19-i)
   }
 
@@ -141,10 +159,6 @@ function addMultiCircle(dataInfo, aDataSet) {
     target.appendChild(newNode);
   }
 
-
-  console.log(target);
-  console.log(template);
-
   var week = 0, scale = 100;
 
   var svg = d3.select("body").append("svg")
@@ -156,30 +170,34 @@ function addMultiCircle(dataInfo, aDataSet) {
 
   var g = svg.append("g")
              .attr("class", "container")
+             .attr("id", function(d, i){
+              return i;
+             })
              .attr("transform", function(d,i){
-        var x = 100,  y = 100;
 
-        if (!(i%2)){
-          for (var count=0;
-               count<i;
-               count++)
-                 x+=viewsAndInteraction[week][count][2];
-          for (var count=0;
-               count<=i;
-               count++)
-                 y+=viewsAndInteraction[week][count][2];
-          } else {
-          for (var count=0;
-               count<i;
-               count++)
-                 y+=viewsAndInteraction[week][count][2];
-          for (var count=0;
-               count<=i;
-               count++)
-                 x+=viewsAndInteraction[week][count][2];
-          }
-          return "translate(" + x + "," + y + ")";
-      });
+              var x = 100,  y = 100;
+
+              if (!(i%2)){
+                for (var count=0;
+                     count<i;
+                     count++)
+                       x+=viewsAndInteraction[week][count][2];
+                for (var count=0;
+                     count<=i;
+                     count++)
+                       y+=viewsAndInteraction[week][count][2];
+                } else {
+                for (var count=0;
+                     count<i;
+                     count++)
+                       y+=viewsAndInteraction[week][count][2];
+                for (var count=0;
+                     count<=i;
+                     count++)
+                       x+=viewsAndInteraction[week][count][2];
+                }
+                return "translate(" + x + "," + y + ")";
+            });
 
   g.append("circle")
     .attr("r", function(d){
@@ -324,8 +342,8 @@ function createNewDataSetForMultiCircle(aDataSet) {
       longestDataIndex = i;
     }
   }        
-  console.log("longestDataIndex : ", longestDataIndex);
-  console.log("longestDataLength : ", longestDataLength);
+  //console.log("longestDataIndex : ", longestDataIndex);
+  //console.log("longestDataLength : ", longestDataLength);
 
   var newDataSet = [];
 
@@ -393,6 +411,270 @@ function createNewDataSetForMultiCircle(aDataSet) {
 
   return newDataSet;
 }
+
+//MultiCircle Setting Start
+/************************************************************************/
+
+
+/************************************************************************/
+//SubCircle Setting Start
+
+var xScale;
+var yScale;
+var svg;
+var subWidth = width / 2;
+var subHeight = height / 2;
+
+function addDetailGraph(dataInfo, aDataSet) {
+  svg = d3.select("body")
+              .append("svg")
+              .attr("width", subWidth)
+              .attr("height", subHeight);
+
+  //Create Circles
+  var soundCircle = svg.selectAll("circle.soundCircle")
+                   .data([aDataSet[0]])  
+                   .enter()
+                   .append("circle");
+  var lightCircle = svg.selectAll("circle.lightCircle")
+                   .data([aDataSet[0]])  
+                   .enter()
+                   .append("circle");
+  
+  //Set Scale
+  xScale = d3.scale.linear().domain([0, aDataSet.length]).range([padding, subWidth - padding]);
+  yScale = d3.scale.linear()
+              .domain(
+                [
+                  d3.min(aDataSet, function(d){
+                    
+                    return +d["sound"];
+                  }),
+
+                  d3.max(aDataSet, function(d){
+                    return +d["sound"];
+                  })
+                ])
+                .range([subHeight - padding, padding]);
+
+  //Set Circles Attribute
+  soundCircle.attr("cx", function(d, i) {
+            return xScale(i);
+         })
+         .attr("cy", function(d, i) {
+            //var cy = d["sound"]
+            //console.log(cy);
+            //return cy;
+            return yScale(d["sound"]);
+         })
+         .attr("r", function(d) {
+            return yScale(d["sound"]) / 50;
+         })
+         .attr("class", "soundCircle")
+         .style("fill", viewColors(1));
+
+
+  lightCircle.attr("cx", function(d, i) {
+            return xScale(i);
+         })
+         .attr("cy", function(d, i) {
+            //var cy = d["sound"]
+            //console.log(cy);
+            //return cy;
+            return yScale(d["light"]);
+         })
+         .attr("r", function(d) {
+            return yScale(d["light"]) / 50;
+         })
+         .attr("class", "lightCircle")
+         .style("fill", viewColors(2));
+
+  //Create labels
+  svg.selectAll("text.soundText")
+     .data([aDataSet[0]])
+     .enter()
+     .append("text")
+     .text(function(d) {
+        return d["sound"];
+     })
+     .attr("class", "soundText")
+     .attr("text-anchor", "middle")
+     .attr("x", function(d, i) {
+        return xScale(i) + 20;
+     })
+     .attr("y", function(d) {
+        return yScale(d["sound"]) - 20;
+     })
+     .attr("font-family", "sans-serif")
+     .attr("font-size", "11px");
+
+  svg.selectAll("text.lightText")
+     .data([aDataSet[0]])
+     .enter()
+     .append("text")
+     .text(function(d) {
+        return d["light"];
+     })
+     .attr("class", "lightText")
+     .attr("text-anchor", "middle")
+     .attr("x", function(d, i) {
+        return xScale(i) + 20;
+     })
+     .attr("y", function(d) {
+        return yScale(d["light"]) - 20;
+     })
+     .attr("font-family", "sans-serif")
+     .attr("font-size", "11px");
+
+
+
+  //Create Clock
+  svg.selectAll("clock")
+     .data([aDataSet[0]])
+     .enter()
+     .append("text")
+     .text(function(d) {
+        return d["time"];
+     })
+     .attr("x", 2*padding)
+     .attr("y", 3*padding)
+     .attr("font-family", "digital")
+     .attr("font-size", "50px")
+     .attr("class", "clock");
+
+  //Set Axis
+  var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom");
+
+  var yAxis = d3.svg.axis()
+                    .scale(yScale)
+                    .orient("left");
+
+  svg.append("g")
+     .attr("class", "axis")
+     .attr("transform", "translate(0," + (subHeight-padding) + ")")
+     .call(xAxis);
+
+  svg.append("g")
+     .attr("class", "axis")
+     .attr("transform", "translate("+padding+",0)")
+     .call(yAxis);
+}
+
+var interval;
+function updateDetailGraph(dataInfo, aDataSet) {
+  var i = 0;
+  var animationTime = 100;
+
+  if (interval != undefined) {
+    clearInterval(interval);
+  }
+
+  interval = setInterval(function() {
+
+    if (i == aDataSet.length)
+      clearInterval(interval);
+
+    //*************** Circle Update
+    svg.selectAll("circle.soundCircle")
+     .data([aDataSet[i]])
+     .transition()
+     .duration(animationTime)
+     .ease("circle")
+     .attr("cx", function(d) {
+          return xScale(i);
+     }.bind(this))
+     .attr("cy", function(d) {
+          //var cy = d["sound"]
+          //console.log(cy);
+          //return cy;
+          return yScale(d["sound"]);
+     })
+     .attr("r", function(d) {
+          //return 3;//yScale(d["sound"]) / 50;
+          return yScale(d["sound"]) / 50;
+     });
+
+     svg.selectAll("circle.lightCircle")
+     .data([aDataSet[i]])
+     .transition()
+     .duration(animationTime)
+     .ease("circle")
+     .attr("cx", function(d) {
+          return xScale(i);
+     }.bind(this))
+     .attr("cy", function(d) {
+          //var cy = d["sound"]
+          //console.log(cy);
+          //return cy;
+          return yScale(d["light"]);
+     })
+     .attr("r", function(d) {
+          //return 3;//yScale(d["sound"]) / 50;
+          return yScale(d["light"]) / 50;
+     });
+     //****************************
+
+
+     //*************** Label Update
+     svg.selectAll("text.soundText")
+      .data([aDataSet[i]])
+      .transition()
+      .duration(animationTime)
+      .ease("circle")
+      .text(function(d) {
+        return d["sound"];
+      })
+      .attr("x", function(d) {
+        return xScale(i) + 20;
+      })
+      .attr("y", function(d) {
+        return yScale(d["sound"]) - 20;
+      })            
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "11px")
+      .attr("text-anchor", "middle")
+
+     svg.selectAll("text.lightText")
+      .data([aDataSet[i]])
+      .transition()
+      .duration(animationTime)
+      .ease("circle")
+      .text(function(d) {
+        return d["light"];
+      })
+      .attr("x", function(d) {
+        return xScale(i) + 20;
+      })
+      .attr("y", function(d) {
+        return yScale(d["light"]) - 20;
+      })            
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "11px")
+      .attr("text-anchor", "middle")
+    //****************************
+
+
+    //*************** Clock Update
+    svg.selectAll("text.clock")
+     .data([aDataSet[i]])
+      .transition()
+      .duration(animationTime)
+     .ease("circle")
+      .text(function(d) {
+        return d["time"];
+      })
+     //****************************
+
+     i++;
+  }.bind(this), animationTime);
+}
+
+
+//SubCircle Setting End
+/************************************************************************/
+
 
 </script>
 <div>
